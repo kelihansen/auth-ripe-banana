@@ -10,6 +10,17 @@ describe('User model', () => {
     
     const password = '12345';
 
+    it('is a good, valid model', () => {
+        const completeInfo = {
+            email: 'me@mail.com',
+            hash: 'nowMyPasswordIsSuperSecret'
+        };
+
+        const user = new User(completeInfo);
+        completeInfo._id = user._id;
+        assert.deepEqual(user.toJSON(), completeInfo);
+    });
+
     it('has required fields', () => {
         const user = new User({});
         const errors = getErrors(user.validateSync(), 2);
