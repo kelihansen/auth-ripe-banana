@@ -4,8 +4,8 @@ const { getErrors } = require('./helpers');
 
 describe('Studio model', () => {
 
-    it('valid good model', () => {
-        const data = {
+    it('is a good, valid model', () => {
+        const info = {
             name: 'Paramount Studios',
             address: {
                 city: 'Los Angeles',
@@ -13,16 +13,17 @@ describe('Studio model', () => {
                 country: 'USA'
             }
         };
-        const studio = new Studio(data);
-        data._id = studio._id;
-        assert.deepEqual(studio.toJSON(), data);
+
+        const studio = new Studio(info);
+        info._id = studio._id;
+        assert.deepEqual(studio.toJSON(), info);
         assert.isUndefined(studio.validateSync());
 
     });
 
-    it('required fields', () => {
+    it('has required fields', () => {
         const studio = new Studio({});
         const errors = getErrors(studio.validateSync(), 1);
-        assert.equal(errors.name.kind, 'required');
+        assert.strictEqual(errors.name.kind, 'required');
     });
 });
