@@ -21,4 +21,14 @@ describe.only('Auth API', () => {
         assert.ok(token);
     });
 
+    it('has a working signin route', () => {
+        return request.post('/auth/signin')
+            .send({
+                email: 'me@mail.com',
+                password: '12345'
+            })
+            .then(({ body }) => {
+                assert.ok(body.token);
+            });
+    });
 });
