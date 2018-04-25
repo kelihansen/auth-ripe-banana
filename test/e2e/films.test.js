@@ -7,15 +7,7 @@ describe('films API', () => {
     before(() => dropCollection('films'));
     before(() => dropCollection('actors'));
     before(() => dropCollection('reviews'));
-    
-    let emma = { name: 'Emma Thompson' };
-    before(() => {
-        return request.post('/actors')
-            .send(emma)
-            .then(({ body }) => {
-                emma = body;
-            });
-    });
+    before(() => dropCollection('reviewers'));
     
     let bbc = { name: 'BBC Films' };
     before(() => {
@@ -32,6 +24,15 @@ describe('films API', () => {
             .send(pixar)
             .then(({ body }) => {
                 pixar = body;
+            });
+    });
+
+    let emma = { name: 'Emma Thompson' };
+    before(() => {
+        return request.post('/actors')
+            .send(emma)
+            .then(({ body }) => {
+                emma = body;
             });
     });
 
