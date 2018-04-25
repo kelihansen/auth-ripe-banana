@@ -1,7 +1,6 @@
 const { assert } = require('chai');
 const request = require('./request');
 const { dropCollection } = require('./db');
-const Actor = require('../../lib/models/Actor');
 const { Types } = require('mongoose');
 
 describe('Actor API', () => {
@@ -36,15 +35,14 @@ describe('Actor API', () => {
             });
     });
     
-    const roundTrip = doc => JSON.parse(JSON.stringify(doc.toJSON()));
     const getFields = ({ _id, name }) => ({ _id, name });
 
     it('get all actors', () => {
-        return Actor.create(paul).then(roundTrip)
-            .then(saved => {
-                paul = saved;
+        return request.post('/actors')
+            .send(paul)
+            .then(({ body }) => {
+                paul = body;
                 return request.get('/actors');
-
             })
             .then(({ body }) => {
                 assert.deepEqual(body, [emma, paul].map(getFields));
