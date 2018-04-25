@@ -8,7 +8,7 @@ describe('Reviewer model', () => {
         const info = {
             name: 'Roger Ebert',
             company: 'rogerebert.com',
-            user: Types.ObjectId()
+            account: Types.ObjectId()
         };
 
         const reviewer = new Reviewer(info);
@@ -22,6 +22,6 @@ describe('Reviewer model', () => {
         const errors = getErrors(reviewer.validateSync(), 3);
         assert.strictEqual(errors.name.kind, 'required');
         assert.strictEqual(errors.company.kind, 'required');
-        assert.strictEqual(errors.user.kind, 'required');
+        assert.strictEqual(errors.account.kind, 'required');
     });
 });

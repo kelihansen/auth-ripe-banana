@@ -1,8 +1,8 @@
 const { assert } = require('chai');
-const User = require('../../lib/models/User');
+const Account = require('../../lib/models/Account');
 const { getErrors } = require('./helpers');
 
-describe('User model', () => {
+describe('Account model', () => {
     
     it('is a good, valid model', () => {
         const completeInfo = {
@@ -10,14 +10,14 @@ describe('User model', () => {
             hash: 'nowMyPasswordIsSuperSecret'
         };
         
-        const user = new User(completeInfo);
-        completeInfo._id = user._id;
-        assert.deepEqual(user.toJSON(), completeInfo);
+        const account = new Account(completeInfo);
+        completeInfo._id = account._id;
+        assert.deepEqual(account.toJSON(), completeInfo);
     });
     
     it('has required fields', () => {
-        const user = new User({});
-        const errors = getErrors(user.validateSync(), 2);
+        const account = new Account({});
+        const errors = getErrors(account.validateSync(), 2);
         assert.strictEqual(errors.email.kind, 'required');
         assert.strictEqual(errors.hash.kind, 'required');
     });
@@ -29,15 +29,15 @@ describe('User model', () => {
     const password = '12345';
 
     it('generates hash from password', () => {
-        const user = new User(info);
-        user.generateHash(password);
-        assert.ok(user.hash);
-        assert.notEqual(user.hash, password);
+        const account = new Account(info);
+        account.generateHash(password);
+        assert.ok(account.hash);
+        assert.notEqual(account.hash, password);
     });
 
     it('compares password to hash', () => {
-        const user = new User(info);
-        user.generateHash(password);
-        assert.ok(user.comparePassword(password));
+        const account = new Account(info);
+        account.generateHash(password);
+        assert.ok(account.comparePassword(password));
     });
 });
