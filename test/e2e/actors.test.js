@@ -19,9 +19,6 @@ describe('Actor API', () => {
         pob: 'Shaker Heights, OH, USA'
     };
 
-    const roundTrip = doc => JSON.parse(JSON.stringify(doc.toJSON()));
-    const getFields = ({ _id, name }) => ({ _id, name });
-
     it('saves an actor', () => {
         return request.post('/actors')
             .send(emma)
@@ -38,7 +35,9 @@ describe('Actor API', () => {
                 emma = body;
             });
     });
-
+    
+    const roundTrip = doc => JSON.parse(JSON.stringify(doc.toJSON()));
+    const getFields = ({ _id, name }) => ({ _id, name });
 
     it('get all actors', () => {
         return Actor.create(paul).then(roundTrip)
@@ -52,7 +51,8 @@ describe('Actor API', () => {
             });
 
     });
-    it('gets an actor by id and their films', () => {
+
+    it('gets an actor by id, including their films', () => {
         let sense = {
             title: 'Sense and Sensibility',
             studio: Types.ObjectId(),
@@ -80,6 +80,7 @@ describe('Actor API', () => {
                 }); 
             });
     });
+
     it('updates an actor', () => {
         emma.pob = 'Paddington, London, England';
 
@@ -90,6 +91,7 @@ describe('Actor API', () => {
             });
 
     });
+
     it('will not delete an actor in a film', () => {
         
         return request.delete(`/actors/${emma._id}`)
@@ -99,6 +101,7 @@ describe('Actor API', () => {
                 assert.include(response.body.error,  'cannot');
             });
     });
+    
     it('deletes an actor by id', () => {
         return request.delete(`/actors/${paul._id}`)
             .then(() => {
@@ -109,7 +112,7 @@ describe('Actor API', () => {
             });
     });
 
-    it('returns 404', () => {
+    it('returns 404 if id not found', () => {
         return request.get(`/actors/${paul._id}`)
             .then(response => {
                 assert.equal(response.status, 404);
