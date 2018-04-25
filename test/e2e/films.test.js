@@ -4,15 +4,49 @@ const { dropCollection } = require('./db');
 
 describe('films API', () => {
 
-    let emma = {
-        name: 'Emma Thompson',
-        dob: new Date(1959, 3, 15).toJSON(),
-        pob: 'London, UK'
-    };
+    before(() => dropCollection('films'));
+    before(() => dropCollection('actors'));
+    before(() => dropCollection('reviews'));
+    
+    let emma = { name: 'Emma Thompson' };
+    before(() => {
+        return request.post('/actors')
+            .send(emma)
+            .then(({ body }) => {
+                emma = body;
+            });
+    });
+    
+    let bbc = { name: 'BBC Films' };
+    before(() => {
+        return request.post('/studios')
+            .send(bbc)
+            .then(({ body }) => {
+                bbc = body;
+            });
+    });
+    
+    let pixar = { name: 'Pixar' };
+    before(() => {
+        return request.post('/studios')
+            .send(pixar)
+            .then(({ body }) => {
+                pixar = body;
+            });
+    });
 
-    let sense = {
-        title: 'Sense and Sensibility',
-        released: 1995,
+    let ebert = { name: 'Roger Ebert', company: 'rogerebert.com' };
+    before(() => {
+        return request.post('/reviewers')
+            .send(ebert)
+            .then(({ body }) => {
+                ebert = body;
+            });
+    });
+
+    let ado = {
+        title: 'Much Ado About Nothing',
+        released: 1993,
         cast: []
     };
 
@@ -22,168 +56,89 @@ describe('films API', () => {
         cast: []
     };
 
-    let pixar = {
-        name: 'Pixar'
+    let castMember;
+
+    const checkOk = res => {
+        if(!res.ok) throw res.error;
+        return res;
     };
-
-    let columbia = {
-        name: 'Columbia Pictures'
-    };
-
-    let critic = {
-        name: 'Steven',
-        company: 'steven.com'
-    };
-
-    let goodReview = {
-        rating: 5,
-        review: 'Really good!',
-        createdAt: new Date(),
-        updateAt: new Date()
-    };
-
-    let badReview = {
-        rating: 1,
-        review: 'Really bad!',
-        createdAt: new Date(),
-        updateAt: new Date()
-    };
-
-
-    before(() => dropCollection('actors'));
-    before(() => dropCollection('films'));
-
-    before(() => {
-        return request.post('/actors')
-            .send(emma)
-            .then(({ body }) => {
-                emma = body;
-            });
-    });
-
-    before(() => {
-        return request.post('/studios')
-            .send(pixar)
-            .then(({ body }) => {
-                pixar = body;
-            });
-    });
-
-    before(() => {
-        return request.post('/studios')
-            .send(columbia)
-            .then(({ body }) => {
-                columbia = body;
-            });
-    });
-
-    before(() => {
-        incredibles.studio = pixar._id;
-        return request.post('/films')
-            .send(incredibles)
-            .then(({ body }) => {
-                incredibles = body;
-            });
-    });
-
-    before(() => {
-        return request.post('/reviewers')
-            .send(critic)
-            .then(({ body }) => {
-                critic = body;
-            });
-    });
-
-    before(() => {
-        goodReview.reviewer = critic._id;
-        goodReview.film = incredibles._id;
-        return request.post('/reviews')
-            .send(goodReview)
-            .then(({ body }) => {
-                goodReview = body;
-            });
-    });
-
-    before(() => {
-        badReview.reviewer = critic._id;
-        badReview.film = incredibles._id;
-        return request.post('/reviews')
-            .send(badReview)
-            .then(({ body }) => {
-                badReview = body;
-            });
-    });
-
 
     it('saves a film', () => {
-        sense.cast = [{ part: 'Elinor Dashwood', actor: emma._id }];
-        sense.studio = columbia._id;
+        ado.studio = bbc._id;
+        castMember = { actor: emma._id };
+        ado.cast.push(castMember);
+
         return request.post('/films')
-            .send(sense)
+            .send(ado)
+            .then(checkOk)
             .then(({ body }) => {
                 const { _id, __v } = body;
-                sense.cast[0]._id = body.cast[0]._id;
+                castMember._id = body.cast[0]._id;
                 assert.ok(_id);
                 assert.equal(__v, 0);
                 assert.deepEqual(body, {
-                    ...sense,
+                    ...ado,
                     _id,
-                    __v,
+                    __v
                 });
-                sense = body;
+                ado = body;
             });
     });
 
-    const getAllFields = ({ _id, title, studio, released }) => {
-        return { 
-            _id, title, studio, released
-        };
-    };
+    const getFields = ({ _id, title, released }) => ({ _id, title, released });
 
     it('gets all films', () => {
-        sense.studio = { _id: columbia._id, name: columbia.name };
-        incredibles.studio = { _id: pixar._id, name: pixar.name };
-        return request.get('/films')
+        incredibles.studio = pixar._id;
+
+        return request.post('/films')
+            .send(incredibles)
+            .then(checkOk)
             .then(({ body }) => {
-                assert.deepEqual(body, [incredibles, sense].map(getAllFields));
+                incredibles = body;
+                return request.get('/films');
+            })
+            .then(({ body }) => {
+                assert.deepEqual(body, [{
+                    ...getFields(ado),
+                    studio: { _id: ado.studio, name: bbc.name }
+                }, {
+                    ...getFields(incredibles),
+                    studio: { _id: incredibles.studio, name: pixar.name }
+                }]);
             });
     });
 
-    const getOneField = ({ _id, title, studio, released, cast }) => {
-        return { 
-            _id, title, studio, released, cast, reviews: []
+    it('gets a film by id, populating studio, actors, and reviewers with names', () => {
+        let thumbUp = {
+            rating: 4,
+            reviewer: ebert._id,
+            review: 'It is cheerful from beginning to end.',
+            film: ado._id,
         };
-    };
 
-    it('get film by id', () => {
-        sense.cast[0].actor = { _id: emma._id, name: emma.name };
-        return request.get(`/films/${sense._id}`)
+        return request.post('/reviews')
+            .send(thumbUp)
+            .then(checkOk)
             .then(({ body }) => {
-                const selected = getOneField(sense);
-                assert.deepEqual(body, selected);
+                thumbUp = body;
+                return request.get(`/films/${ado._id}`);
+            })
+            .then(({ body }) => {
+                assert.deepEqual(body, {
+                    ...ado,
+                    studio: { _id: ado.studio, name: bbc.name },
+                    cast: [{
+                        _id: castMember._id,
+                        actor: { _id: castMember.actor, name: emma.name }
+                    }],
+                    reviews: [{
+                        _id: thumbUp._id,
+                        rating: thumbUp.rating,
+                        review: thumbUp.review,
+                        reviewer: { _id: thumbUp.reviewer, name: ebert.name }
+                    }]
+                });
             });
-    });
-
-    it('checks review populate on get film by id', () => {
-        const incrdReview = [
-            { 
-                _id: goodReview._id, 
-                rating: goodReview.rating, 
-                review: goodReview.review,
-                reviewer: { _id: critic._id, name: critic.name }
-            },
-            { 
-                _id: badReview._id, 
-                rating: badReview.rating, 
-                review: badReview.review, 
-                reviewer: { _id: critic._id, name: critic.name }
-            }
-        ];
-
-        return request.get(`/films/${incredibles._id}`)
-            .then(({ body }) => {
-                assert.deepEqual(body.reviews, incrdReview);
-            });       
     });
 
     it('deletes film by id', () => {
