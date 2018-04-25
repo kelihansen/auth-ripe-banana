@@ -5,21 +5,11 @@ const { dropCollection } = require('./db');
 describe('Studio API', () => {
 
     let paramount = {
-        name: 'Paramount Pictures',
-        address: {
-            city: 'Los Angeles',
-            state: 'California',
-            country: 'USA'
-        },
+        name: 'Paramount Pictures'
     };
 
     let pixar = {
-        name: 'Pixar',
-        address: {
-            city: 'Emeryville',
-            state: 'California',
-            country: 'USA'
-        },
+        name: 'Pixar'
     };
 
     before(() => dropCollection('studios'));
@@ -55,7 +45,7 @@ describe('Studio API', () => {
             });
     });
 
-    it('gets particular studio by id', () => {
+    it('gets a particular studio by id', () => {
         let up = {
             title: 'UP',
             studio: pixar._id,
@@ -80,7 +70,7 @@ describe('Studio API', () => {
             });
     });
 
-    it('deletes studio by id', () => {
+    it('deletes a studio by id', () => {
         return request.delete(`/studios/${paramount._id}`)
             .then(() => {
                 return request.get(`/studios/${paramount._id}`);
