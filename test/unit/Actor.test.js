@@ -4,7 +4,7 @@ const { getErrors } = require('./helpers');
 
 describe('Actor model', () => {
 
-    it('valid good model', () => {
+    it('is a good, valid model', () => {
         const data = {
             name: 'Paul Newman',
             dob: new Date(1925, 0, 26),
@@ -16,7 +16,7 @@ describe('Actor model', () => {
         assert.isUndefined(actor.validateSync());
     });
 
-    it('required fields', () => {
+    it('has a required field', () => {
         const actor = new Actor({});
         const errors = getErrors(actor.validateSync(), 1);
         assert.equal(errors.name.kind, 'required');
