@@ -21,6 +21,14 @@ describe('Auth API', () => {
         assert.ok(token);
     });
 
+    it('has a working verify route', () => {
+        return request.get('/auth/verify')
+            .set('Authorization', token)
+            .then(({ body }) => {
+                assert.ok(body.verified);
+            });
+    });
+
     it('has a working signin route', () => {
         return request.post('/auth/signin')
             .send({
