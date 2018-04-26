@@ -12,33 +12,6 @@ describe('films API', () => {
     before(() => dropCollection('accounts'));  
     
     let token = '';
-    
-    let bbc = { name: 'BBC Films' };
-    before(() => {
-        return request.post('/studios')
-            .send(bbc)
-            .then(({ body }) => {
-                bbc = body;
-            });
-    });
-    
-    let pixar = { name: 'Pixar' };
-    before(() => {
-        return request.post('/studios')
-            .send(pixar)
-            .then(({ body }) => {
-                pixar = body;
-            });
-    });
-
-    let emma = { name: 'Emma Thompson' };
-    before(() => {
-        return request.post('/actors')
-            .send(emma)
-            .then(({ body }) => {
-                emma = body;
-            });
-    });
 
     let ebert = {
         name: 'Roger Ebert',
@@ -53,6 +26,36 @@ describe('films API', () => {
             .then(({ body }) => {
                 token = body.token;
                 ebert._id = tokenService.verify(token).id;
+            });
+    });
+    
+    let bbc = { name: 'BBC Films' };
+    before(() => {
+        return request.post('/studios')
+            .set('Authorization', token)        
+            .send(bbc)
+            .then(({ body }) => {
+                bbc = body;
+            });
+    });
+    
+    let pixar = { name: 'Pixar' };
+    before(() => {
+        return request.post('/studios')
+            .set('Authorization', token)
+            .send(pixar)
+            .then(({ body }) => {
+                pixar = body;
+            });
+    });
+
+    let emma = { name: 'Emma Thompson' };
+    before(() => {
+        return request.post('/actors')
+            .set('Authorization', token)            
+            .send(emma)
+            .then(({ body }) => {
+                emma = body;
             });
     });
 
@@ -81,6 +84,7 @@ describe('films API', () => {
         ado.cast.push(castMember);
 
         return request.post('/films')
+            .set('Authorization', token)            
             .send(ado)
             .then(checkOk)
             .then(({ body }) => {
@@ -103,6 +107,7 @@ describe('films API', () => {
         incredibles.studio = pixar._id;
 
         return request.post('/films')
+            .set('Authorization', token)            
             .send(incredibles)
             .then(checkOk)
             .then(({ body }) => {
@@ -155,6 +160,7 @@ describe('films API', () => {
 
     it('deletes film by id', () => {
         return request.delete(`/films/${incredibles._id}`)
+            .set('Authorization', token)            
             .then(() => {
                 return request.get(`/films/${incredibles._id}`);
             })
