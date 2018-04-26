@@ -1,7 +1,8 @@
 const { assert } = require('chai');
 const request = require('./request');
 const { Types } = require('mongoose');
-const { dropCollection, createToken } = require('./db');
+const { dropCollection } = require('./db');
+const tokenService = require('../../lib/util/token-service');
 
 describe('Reviewer API', () => {
     before(() => dropCollection('reviewers'));
@@ -10,7 +11,6 @@ describe('Reviewer API', () => {
     before(() => dropCollection('accounts'));  
     
     let token = '';
-    before(() => createToken().then(t => token = t));
     
     let coolHandLuke = {
         title: 'Cool Hand Luke',
@@ -29,46 +29,50 @@ describe('Reviewer API', () => {
 
     let siskel = {
         name: 'Gene Siskel',
-        company: 'genesiskel.com'
+        company: 'genesiskel.com',
+        email: 'estate@genesiskel.com',
+        password: '12345'
     };
+
+    before(() => {
+        return request.post('/auth/signup')
+            .send(siskel)
+            .then(({ body }) => {
+                token = body.token;
+                siskel._id = tokenService.verify(token).id;
+            });
+    });
 
     let ebert = {
         name: 'Roger Ebert',
-        company: 'rogerebert.com'
+        company: 'rogerebert.com',
+        email: 'estate@rogerebert.com',
+        password: 'password'
     };
 
-    const checkOk = res => {
-        if(!res.ok) throw res.error;
-        return res;
-    };
-
-    it('saves a reviewer', () => {
-        return request.post('/reviewers')
-            .send(siskel)
-            .then(checkOk)
+    before(() => {
+        return request.post('/auth/signup')
+            .send(ebert)
             .then(({ body }) => {
-                const { _id, __v } = body;
-                assert.ok(_id);
-                assert.strictEqual(__v, 0);
-                assert.deepEqual(body, {
-                    ...siskel,
-                    _id,
-                    __v
-                });
-                siskel = body;
+                token = body.token;
+                ebert._id = tokenService.verify(token).id;
             });
     });
 
     it('gets all reviewers', () => {
-        return request.post('/reviewers')
-            .send(ebert)
-            .then(checkOk)
+        return request.get('/reviewers')
             .then(({ body }) => {
-                ebert = body;
-                return request.get('/reviewers');
-            })
-            .then(({ body }) => {
-                assert.deepEqual(body, [siskel, ebert]);
+                assert.deepEqual(body, [{
+                    _id: siskel._id,
+                    name: siskel.name,
+                    company: siskel.company,
+                    __v: 0
+                }, {
+                    _id: ebert._id,
+                    name: ebert.name,
+                    company: ebert.company,
+                    __v: 0
+                }]);
             });
     });
 
@@ -88,7 +92,10 @@ describe('Reviewer API', () => {
             })
             .then(({ body }) => {
                 assert.deepEqual(body, {
-                    ...ebert,
+                    _id: ebert._id,
+                    name: ebert.name,
+                    company: ebert.company,
+                    __v: 0,
                     reviews: [{ 
                         _id: lukeReview._id,
                         rating: lukeReview.rating,
@@ -102,15 +109,4 @@ describe('Reviewer API', () => {
             });
     });
 
-    
-    it('updates a reviewer', () => {
-        siskel.company = 'Chicago Tribune';
-
-        return request.put(`/reviewers/${siskel._id}`)
-            .send(siskel)
-            .then(checkOk)
-            .then(({ body }) => {
-                assert.deepEqual(body, siskel);
-            });
-    });
 });
