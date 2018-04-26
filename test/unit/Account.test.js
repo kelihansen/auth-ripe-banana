@@ -7,7 +7,8 @@ describe('Account model', () => {
     it('is a good, valid model', () => {
         const completeInfo = {
             email: 'me@mail.com',
-            hash: 'nowMyPasswordIsSuperSecret'
+            hash: 'nowMyPasswordIsSuperSecret',
+            roles: ['admin']
         };
         
         const account = new Account(completeInfo);
