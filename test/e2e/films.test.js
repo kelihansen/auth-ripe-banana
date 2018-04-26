@@ -116,7 +116,6 @@ describe('films API', () => {
     it('gets a film by id, populating studio, actors, and reviewers with names', () => {
         let thumbUp = {
             rating: 4,
-            reviewer: ebert._id,
             review: 'It is cheerful from beginning to end.',
             film: ado._id,
         };
@@ -141,7 +140,7 @@ describe('films API', () => {
                         _id: thumbUp._id,
                         rating: thumbUp.rating,
                         review: thumbUp.review,
-                        reviewer: { _id: thumbUp.reviewer, name: ebert.name }
+                        reviewer: { _id: ebert._id, name: ebert.name }
                     }]
                 });
             });

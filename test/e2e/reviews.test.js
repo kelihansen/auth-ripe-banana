@@ -11,7 +11,7 @@ describe('Review API', () => {
 
     let token = '';
     before(() => createToken().then(t => token = t));
-    
+
     let ebert = {
         name: 'Roger Ebert',
         company: 'rogerebert.com'
@@ -51,21 +51,20 @@ describe('Review API', () => {
     };
 
     it('saves a review', () => {
-        lukeReview.reviewer = ebert._id;
         lukeReview.film = coolHandLuke._id;
         return request.post('/reviews')
             .set('Authorization', token)
             .send(lukeReview)
             .then(checkOk)
             .then(({ body }) => {
-                const { _id, __v, createdAt, updatedAt } = body;
+                const { _id, __v, createdAt, updatedAt, reviewer } = body;
                 assert.ok(_id);
                 assert.strictEqual(__v, 0);
                 assert.ok(createdAt);
                 assert.ok(updatedAt);
                 assert.deepEqual(body, {
                     ...lukeReview,
-                    _id, __v, createdAt, updatedAt
+                    _id, __v, createdAt, updatedAt, reviewer
                 });
                 lukeReview = body;
             });

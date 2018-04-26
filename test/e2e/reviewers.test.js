@@ -76,7 +76,6 @@ describe('Reviewer API', () => {
         let lukeReview = {
             rating: 5,
             review: 'It is a great film. On that most of us can agree.',
-            reviewer: ebert._id,
             film: coolHandLuke._id
         };
     
