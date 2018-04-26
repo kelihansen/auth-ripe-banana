@@ -12,7 +12,9 @@ describe('Auth API', () => {
         return request.post('/auth/signup')
             .send({
                 email: 'me@mail.com',
-                password: '12345'
+                password: '12345',
+                name: 'Reviewer Name',
+                company: 'ireview.com'
             })
             .then(({ body }) => token = body.token);
     });
