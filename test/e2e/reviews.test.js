@@ -1,7 +1,7 @@
 const { assert } = require('chai');
 const request = require('./request');
 const { Types } = require('mongoose');
-const { dropCollection, createToken } = require('./db');
+const { dropCollection } = require('./db');
 
 describe('Review API', () => {
     before(() => dropCollection('reviews'));
@@ -10,18 +10,19 @@ describe('Review API', () => {
     before(() => dropCollection('accounts'));
 
     let token = '';
-    before(() => createToken().then(t => token = t));
 
     let ebert = {
         name: 'Roger Ebert',
-        company: 'rogerebert.com'
+        company: 'rogerebert.com',
+        email: 'estate@rogerebert.com',
+        password: 'password'
     };
 
     before(() => {
-        return request.post('/reviewers')
+        return request.post('/auth/signup')
             .send(ebert)
             .then(({ body }) => {
-                ebert = body;
+                token = body.token;
             });
     });
 
