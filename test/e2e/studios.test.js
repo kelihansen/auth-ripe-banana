@@ -1,8 +1,14 @@
 const { assert } = require('chai');
 const request = require('./request');
-const { dropCollection } = require('./db');
+const { dropCollection, createToken } = require('./db');
 
 describe('Studio API', () => {
+
+    before(() => dropCollection('studios'));
+    before(() => dropCollection('films'));
+
+    let token = '';
+    before(() => createToken().then(t => token = t));
 
     let paramount = {
         name: 'Paramount Pictures'
@@ -11,12 +17,10 @@ describe('Studio API', () => {
     let pixar = {
         name: 'Pixar'
     };
-
-    before(() => dropCollection('studios'));
-    before(() => dropCollection('films'));
     
     it('saves a studio', () => {
         return request.post('/studios')
+            .set('Authorization', token)
             .send(paramount)
             .then(({ body }) => {
                 const { _id, __v } = body;
@@ -35,6 +39,7 @@ describe('Studio API', () => {
 
     it('gets all studios', () => {
         return request.post('/studios')
+            .set('Authorization', token)
             .send(pixar)
             .then(({ body }) => {
                 pixar = body;
@@ -54,6 +59,7 @@ describe('Studio API', () => {
         };
         
         return request.post('/films')
+            .set('Authorization', token)
             .send(up)
             .then(({ body }) => {
                 up = body;
@@ -72,6 +78,7 @@ describe('Studio API', () => {
 
     it('deletes a studio by id', () => {
         return request.delete(`/studios/${paramount._id}`)
+            .set('Authorization', token)
             .then(() => {
                 return request.get(`/studios/${paramount._id}`);
             })
@@ -82,6 +89,7 @@ describe('Studio API', () => {
 
     it('will not delete a studio with films', () => {
         return request.delete(`/studios/${pixar._id}`)
+            .set('Authorization', token)
             .then(response => {
                 assert.strictEqual(response.status, 400);
                 assert.include(response.body.error,  'cannot');
