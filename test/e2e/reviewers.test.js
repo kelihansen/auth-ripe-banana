@@ -38,8 +38,7 @@ describe('Reviewer API', () => {
         return request.post('/auth/signup')
             .send(siskel)
             .then(({ body }) => {
-                token = body.token;
-                siskel._id = tokenService.verify(token).id;
+                siskel._id = tokenService.verify(body.token).id;
             });
     });
 
