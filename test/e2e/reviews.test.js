@@ -2,6 +2,7 @@ const { assert } = require('chai');
 const request = require('./request');
 const { Types } = require('mongoose');
 const { dropCollection } = require('./db');
+const tokenService = require('../../lib/util/token-service');
 
 describe('Review API', () => {
     before(() => dropCollection('reviews'));
@@ -15,7 +16,8 @@ describe('Review API', () => {
         name: 'Roger Ebert',
         company: 'rogerebert.com',
         email: 'estate@rogerebert.com',
-        password: 'password'
+        password: 'password',
+        roles: ['admin']
     };
 
     before(() => {
@@ -23,6 +25,7 @@ describe('Review API', () => {
             .send(ebert)
             .then(({ body }) => {
                 token = body.token;
+                ebert._id = tokenService.verify(token).id;                
             });
     });
 
@@ -61,9 +64,10 @@ describe('Review API', () => {
             .then(({ body }) => {
                 const { _id, __v, createdAt, updatedAt, reviewer } = body;
                 assert.ok(_id);
-                assert.strictEqual(__v, 0);
                 assert.ok(createdAt);
                 assert.ok(updatedAt);
+                assert.strictEqual(__v, 0);
+                assert.strictEqual(reviewer, ebert._id);
                 assert.deepEqual(body, {
                     ...lukeReview,
                     _id, __v, createdAt, updatedAt, reviewer

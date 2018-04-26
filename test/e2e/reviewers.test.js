@@ -17,7 +17,8 @@ describe('Reviewer API', () => {
         name: 'Roger Ebert',
         company: 'rogerebert.com',
         email: 'estate@rogerebert.com',
-        password: 'password'
+        password: 'password',
+        roles: ['admin']
     };
 
     before(() => {
