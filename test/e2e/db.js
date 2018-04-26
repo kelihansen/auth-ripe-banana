@@ -13,7 +13,7 @@ module.exports = {
             });
     },
 
-    createToken(info = { email: 'me@mail.com', password: '12345' }) {
+    createToken(info = { email: 'me@mail.com', password: '12345', name: 'Madame Reviewer', company: 'ireview.com' }) {
         return request.post('/auth/signup')
             .send(info)
             .then(({ body }) => body.token);

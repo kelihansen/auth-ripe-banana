@@ -1,10 +1,13 @@
 const { assert } = require('chai');
 const request = require('./request');
-const { dropCollection } = require('./db');
+const { dropCollection, createToken } = require('./db');
 const { Types } = require('mongoose');
 
 describe('Actor API', () => {
     before(() => dropCollection('actors'));
+
+    let token = '';
+    before(() => createToken().then(t => token = t));
 
     let emma = {
         name: 'Emma Thompson',
@@ -20,6 +23,7 @@ describe('Actor API', () => {
 
     it('saves an actor', () => {
         return request.post('/actors')
+            .set('Authorization', token)
             .send(emma)
             .then(({ body }) => {
                 const { _id, __v
@@ -39,6 +43,7 @@ describe('Actor API', () => {
 
     it('get all actors', () => {
         return request.post('/actors')
+            .set('Authorization', token)
             .send(paul)
             .then(({ body }) => {
                 paul = body;
@@ -61,6 +66,7 @@ describe('Actor API', () => {
             }]
         };
         return request.post('/films')
+            .set('Authorization', token)
             .send(sense)
             .then(({ body }) => {
                 sense = body;
@@ -83,6 +89,7 @@ describe('Actor API', () => {
         emma.pob = 'Paddington, London, England';
 
         return request.put(`/actors/${emma._id}`)
+            .set('Authorization', token)
             .send(emma)
             .then(({ body }) => {
                 assert.deepEqual(body, emma);
@@ -93,7 +100,7 @@ describe('Actor API', () => {
     it('will not delete an actor in a film', () => {
         
         return request.delete(`/actors/${emma._id}`)
-    
+            .set('Authorization', token)
             .then(response => {
                 assert.strictEqual(response.status, 400);
                 assert.include(response.body.error,  'cannot');
@@ -102,6 +109,7 @@ describe('Actor API', () => {
     
     it('deletes an actor by id', () => {
         return request.delete(`/actors/${paul._id}`)
+            .set('Authorization', token)
             .then(() => {
                 return request.get(`/actors/${paul._id}`);
             })
