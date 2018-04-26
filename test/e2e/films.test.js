@@ -1,6 +1,7 @@
 const { assert } = require('chai');
 const request = require('./request');
-const { dropCollection, createToken } = require('./db');
+const { dropCollection } = require('./db');
+const tokenService = require('../../lib/util/token-service');
 
 describe('films API', () => {
 
@@ -11,7 +12,6 @@ describe('films API', () => {
     before(() => dropCollection('accounts'));  
     
     let token = '';
-    before(() => createToken().then(t => token = t));
     
     let bbc = { name: 'BBC Films' };
     before(() => {
@@ -40,12 +40,19 @@ describe('films API', () => {
             });
     });
 
-    let ebert = { name: 'Roger Ebert', company: 'rogerebert.com' };
+    let ebert = {
+        name: 'Roger Ebert',
+        company: 'rogerebert.com',
+        email: 'estate@rogerebert.com',
+        password: 'password'
+    };
+
     before(() => {
-        return request.post('/reviewers')
+        return request.post('/auth/signup')
             .send(ebert)
             .then(({ body }) => {
-                ebert = body;
+                token = body.token;
+                ebert._id = tokenService.verify(token).id;
             });
     });
 
