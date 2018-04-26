@@ -35,6 +35,7 @@ describe('Review API', () => {
 
     before(() => {
         return request.post('/films')
+            .set('Authorization', token)
             .send(coolHandLuke)
             .then(({ body }) => {
                 coolHandLuke = body;

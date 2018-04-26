@@ -5,12 +5,29 @@ const { dropCollection } = require('./db');
 const tokenService = require('../../lib/util/token-service');
 
 describe('Reviewer API', () => {
+
     before(() => dropCollection('reviewers'));
     before(() => dropCollection('reviews'));
     before(() => dropCollection('films'));
     before(() => dropCollection('accounts'));  
     
     let token = '';
+
+    let ebert = {
+        name: 'Roger Ebert',
+        company: 'rogerebert.com',
+        email: 'estate@rogerebert.com',
+        password: 'password'
+    };
+
+    before(() => {
+        return request.post('/auth/signup')
+            .send(ebert)
+            .then(({ body }) => {
+                token = body.token;
+                ebert._id = tokenService.verify(token).id;
+            });
+    });
     
     let coolHandLuke = {
         title: 'Cool Hand Luke',
@@ -21,6 +38,7 @@ describe('Reviewer API', () => {
 
     before(() => {
         return request.post('/films')
+            .set('Authorization', token)
             .send(coolHandLuke)
             .then(({ body }) => {
                 coolHandLuke = body;
@@ -42,34 +60,18 @@ describe('Reviewer API', () => {
             });
     });
 
-    let ebert = {
-        name: 'Roger Ebert',
-        company: 'rogerebert.com',
-        email: 'estate@rogerebert.com',
-        password: 'password'
-    };
-
-    before(() => {
-        return request.post('/auth/signup')
-            .send(ebert)
-            .then(({ body }) => {
-                token = body.token;
-                ebert._id = tokenService.verify(token).id;
-            });
-    });
-
     it('gets all reviewers', () => {
         return request.get('/reviewers')
             .then(({ body }) => {
                 assert.deepEqual(body, [{
-                    _id: siskel._id,
-                    name: siskel.name,
-                    company: siskel.company,
-                    __v: 0
-                }, {
                     _id: ebert._id,
                     name: ebert.name,
                     company: ebert.company,
+                    __v: 0
+                }, {
+                    _id: siskel._id,
+                    name: siskel.name,
+                    company: siskel.company,
                     __v: 0
                 }]);
             });
