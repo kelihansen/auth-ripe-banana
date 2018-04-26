@@ -5,6 +5,7 @@ const { Types } = require('mongoose');
 
 describe('Actor API', () => {
     before(() => dropCollection('actors'));
+    before(() => dropCollection('accounts'));
 
     let token = '';
     before(() => createToken().then(t => token = t));
