@@ -1,6 +1,6 @@
 const { assert } = require('chai');
 const request = require('./request');
-const { dropCollection } = require('./db');
+const { dropCollection, createToken } = require('./db');
 
 describe('films API', () => {
 
@@ -8,6 +8,10 @@ describe('films API', () => {
     before(() => dropCollection('actors'));
     before(() => dropCollection('reviews'));
     before(() => dropCollection('reviewers'));
+    before(() => dropCollection('accounts'));  
+    
+    let token = '';
+    before(() => createToken().then(t => token = t));
     
     let bbc = { name: 'BBC Films' };
     before(() => {
@@ -118,6 +122,7 @@ describe('films API', () => {
         };
 
         return request.post('/reviews')
+            .set('Authorization', token)            
             .send(thumbUp)
             .then(checkOk)
             .then(({ body }) => {

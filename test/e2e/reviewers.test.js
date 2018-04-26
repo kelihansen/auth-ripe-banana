@@ -1,12 +1,16 @@
 const { assert } = require('chai');
 const request = require('./request');
-const { dropCollection } = require('./db');
 const { Types } = require('mongoose');
+const { dropCollection, createToken } = require('./db');
 
 describe('Reviewer API', () => {
     before(() => dropCollection('reviewers'));
     before(() => dropCollection('reviews'));
     before(() => dropCollection('films'));
+    before(() => dropCollection('accounts'));  
+    
+    let token = '';
+    before(() => createToken().then(t => token = t));
     
     let coolHandLuke = {
         title: 'Cool Hand Luke',
@@ -77,6 +81,7 @@ describe('Reviewer API', () => {
         };
     
         return request.post('/reviews')
+            .set('Authorization', token) 
             .send(lukeReview)
             .then(({ body }) => {
                 lukeReview = body;

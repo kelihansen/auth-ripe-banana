@@ -1,12 +1,16 @@
 const { assert } = require('chai');
 const request = require('./request');
-const { dropCollection } = require('./db');
 const { Types } = require('mongoose');
+const { dropCollection, createToken } = require('./db');
 
 describe('Review API', () => {
     before(() => dropCollection('reviews'));
     before(() => dropCollection('reviewers'));
     before(() => dropCollection('films'));
+    before(() => dropCollection('accounts'));
+
+    let token = '';
+    before(() => createToken().then(t => token = t));
     
     let ebert = {
         name: 'Roger Ebert',
@@ -50,6 +54,7 @@ describe('Review API', () => {
         lukeReview.reviewer = ebert._id;
         lukeReview.film = coolHandLuke._id;
         return request.post('/reviews')
+            .set('Authorization', token)
             .send(lukeReview)
             .then(checkOk)
             .then(({ body }) => {
