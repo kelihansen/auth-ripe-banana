@@ -1,4 +1,6 @@
-db.films.aggregate([
+// GET /films & return [{ title, released, studio.name, averageRating }]
+
+Film.aggregate([
     {
         $lookup:
            {
@@ -8,12 +10,7 @@ db.films.aggregate([
                as: 'studio'
            }
     },
-    {
-        $unwind:
-        {
-            path: '$studio'
-        }
-    },
+    { $unwind: { path: '$studio' } },
     {
         $lookup:
            {
@@ -23,19 +20,28 @@ db.films.aggregate([
                as: 'reviews'
            }
     },
-    {
-        $unwind:
-        {
-            path: '$reviews',
-            preserveNullAndEmptyArrays: true
-        }
+    { $unwind: { path: '$reviews', preserveNullAndEmptyArrays: true } },
+    { 
+        $group:
+            {
+                _id: '$_id',
+                title: { $first: '$title' },
+                released: { $first: '$released' },
+                studio: { $first: '$studio.name' },
+                averageRating: {
+                    $avg: {
+                        $cond: [{ $gt: ['$reviews', null] }, '$reviews.rating', 0]
+                    }
+                }
+            }
     },
-    { $group: { _id: '$_id', title: { $first: '$title' }, released: { $first: '$released' }, studio: { $first: '$studio.name' }, averageRating: { $avg: { $cond: [{ $gt: ['$reviews', null] }, '$reviews.rating', 0] } } } },
     { $project: { _id: 0, title: 1, released: 1, studio: 1, averageRating: 1 } },
     { $sort: { title: 1 } }
 ]);
 
-db.films.aggregate([
+// GET /films/top & return [{ title, released, studio.name, averageRating }] - top 10 sorted by highest rating
+
+Film.aggregate([
     {
         $lookup:
            {
@@ -45,12 +51,7 @@ db.films.aggregate([
                as: 'studio'
            }
     },
-    {
-        $unwind:
-        {
-            path: '$studio'
-        }
-    },
+    { $unwind: { path: '$studio' } },
     {
         $lookup:
            {
@@ -60,20 +61,29 @@ db.films.aggregate([
                as: 'reviews'
            }
     },
+    { $unwind: { path: '$reviews', preserveNullAndEmptyArrays: true } },
     {
-        $unwind:
-        {
-            path: '$reviews',
-            preserveNullAndEmptyArrays: true
-        }
+        $group:
+            {
+                _id: '$_id',
+                title: { $first: '$title' },
+                released: { $first: '$released' },
+                studio: { $first: '$studio.name' },
+                averageRating: {
+                    $avg: {
+                        $cond: [{ $gt: ['$reviews', null] }, '$reviews.rating', 0]
+                    }
+                }
+            }
     },
-    { $group: { _id: '$_id', title: { $first: '$title' }, released: { $first: '$released' }, studio: { $first: '$studio.name' }, averageRating: { $avg: { $cond: [{ $gt: ['$reviews', null] }, '$reviews.rating', 0] } } } },
     { $project: { _id: 0, title: 1, released: 1, studio: 1, averageRating: 1 } },
     { $sort: { averageRating: -1 } },
     { $limit: 10 }
 ]);
 
-db.actors.aggregate([
+// GET /actors & return [{ name, movieCount }]
+
+Actor.aggregate([
     {
         $lookup:
        {
@@ -83,28 +93,26 @@ db.actors.aggregate([
            as: 'films'
        }
     },
+    { $unwind: { path: '$films', preserveNullAndEmptyArrays: true } },
     {
-        $unwind:
-    {
-        path: '$films',
-        preserveNullAndEmptyArrays: true
-    }
+        $group: {
+            _id: '$_id',
+            name: { $first: '$name' },
+            movieCount: {
+                $sum: {
+                    $cond: [{ $gt: ['$films', null] }, 1, 0]
+                }
+            }
+        }
     },
-    { $group: { _id: '$_id', name: { $first: '$name' }, movieCount: { $sum: { $cond: [{ $gt: ['$films', null] }, 1, 0] } } } },
-    { $project: {  
-        _id: 0,
-        name: 1,
-        movieCount: 1
-    }
-    },
-    { $sort: { movieCount: -1 }
-    }
+    { $project: { _id: 0, name: 1, movieCount: 1 } },
+    { $sort: { movieCount: -1 } }
 ]);
 
-db.reviewers.aggregate([
-    {
-        $match: { _id: ObjectId('5ae2111e2d3d81401f293d64') }
-    },
+// GET /reviewer & return [{ name, company, countOfReviews, averageReview }]
+
+Reviewer.aggregate([
+    { $match: { _id: objectId } },
     {
         $lookup:
            {
@@ -114,13 +122,23 @@ db.reviewers.aggregate([
                as: 'reviews'
            }
     },
+    { $unwind: { path: '$reviews', preserveNullAndEmptyArrays: true } },
     {
-        $unwind:
-        {
-            path: '$reviews',
-            preserveNullAndEmptyArrays: true
+        $group: {
+            _id: '$_id',
+            name: { $first: '$name' },
+            company: { $first: '$company' },
+            countOfReviews: {
+                $sum: {
+                    $cond: [{ $gt: ['$reviews', null] }, 1, 0]
+                }
+            },
+            averageRating: {
+                $avg: {
+                    $cond: [{ $gt: ['$reviews', null] }, '$reviews.rating', 0]
+                }
+            }
         }
     },
-    { $group: { _id: '$_id', name: { $first: '$name' }, company: { $first: '$company' }, countOfReviews: { $sum: { $cond: [{ $gt: ['$reviews', null] }, 1, 0] } }, averageRating: { $avg: { $cond: [{ $gt: ['$reviews', null] }, '$reviews.rating', 0] } } } },
     { $project: { _id: 0, name: 1, company: 1, countOfReviews: 1, averageRating: 1 } }
 ]);
